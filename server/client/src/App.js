@@ -21,7 +21,10 @@ import {
   getRegistrations, 
   getAttendance, 
   getCourses, 
-  getInstructors 
+  getInstructors,
+  getToken,
+  setToken,
+  clearToken
 } from "./services/api";
 
 function App() {
@@ -40,10 +43,16 @@ function App() {
   const { toasts, showToast } = useToast();
 
   useEffect(() => {
+    // Check if user has a valid token
+    const existingToken = getToken();
     const savedUser = localStorage.getItem("user");
-    if (savedUser) {
+    if (existingToken && savedUser) {
       setCurrentUser(JSON.parse(savedUser));
       fetchAllData();
+    } else {
+      // Clear localStorage if token doesn't exist
+      clearToken();
+      localStorage.removeItem("user");
     }
   }, []);
 
@@ -89,6 +98,7 @@ function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    clearToken();
     localStorage.removeItem("user");
     setShowSignup(false);
     setActiveTab("dashboard");

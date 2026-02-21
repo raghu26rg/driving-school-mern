@@ -1,12 +1,41 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const app = express();
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 // middleware
 app.use(cors());
 app.use(express.json());
+
+// ===== JWT MIDDLEWARE =====
+// Verify JWT token from request headers
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ success: false, message: "No token provided" });
+  }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded; // Attach user info to request
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
+  }
+};
+
+// Check if user has specific role
+const checkRole = (requiredRole) => {
+  return (req, res, next) => {
+    if (req.user.role !== requiredRole && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Access denied - insufficient permissions" });
+    }
+    next();
+  };
+};
 
 // MongoDB connection
 mongoose.connect("mongodb://127.0.0.1:27017/nehaDrivingSchool")
@@ -174,9 +203,9 @@ app.post("/register", async (req, res) => {
   try {
     const newUser = new Registration(req.body);
     await newUser.save();
-    res.send("Registration Successful");
+    res.json({ success: true, message: "Registration Successful", registration: newUser });
   } catch (error) {
-    res.status(500).send("Error saving data");
+    res.status(500).json({ success: false, message: "Error saving registration", error: error.message });
   }
 });
 
@@ -198,9 +227,9 @@ app.get("/registrations", async (req, res) => {
     }
     
     const registrations = await Registration.find(filter).sort({ date: -1 });
-    res.json(registrations);
+    res.json({ success: true, data: registrations });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: "Error retrieving registrations", error: error.message });
   }
 });
 
@@ -254,9 +283,9 @@ app.post("/attendance", async (req, res) => {
   try {
     const newAttendance = new Attendance(req.body);
     await newAttendance.save();
-    res.send("Attendance Recorded");
+    res.json({ success: true, message: "Attendance Recorded", data: newAttendance });
   } catch (error) {
-    res.status(500).send("Error recording attendance");
+    res.status(500).json({ success: false, message: "Error recording attendance", error: error.message });
   }
 });
 
@@ -319,9 +348,9 @@ app.post("/courses", async (req, res) => {
   try {
     const newCourse = new Course(req.body);
     await newCourse.save();
-    res.json({ message: "Course Created", course: newCourse });
+    res.json({ success: true, message: "Course Created", data: newCourse });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: "Error creating course", error: error.message });
   }
 });
 
@@ -329,9 +358,9 @@ app.post("/courses", async (req, res) => {
 app.get("/courses", async (req, res) => {
   try {
     const courses = await Course.find().sort({ createdAt: -1 });
-    res.json(courses);
+    res.json({ success: true, data: courses });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: "Error retrieving courses", error: error.message });
   }
 });
 
@@ -375,9 +404,9 @@ app.post("/instructors", async (req, res) => {
   try {
     const newInstructor = new Instructor(req.body);
     await newInstructor.save();
-    res.json({ message: "Instructor Created", instructor: newInstructor });
+    res.json({ success: true, message: "Instructor Created", data: newInstructor });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: "Error creating instructor", error: error.message });
   }
 });
 
@@ -385,9 +414,9 @@ app.post("/instructors", async (req, res) => {
 app.get("/instructors", async (req, res) => {
   try {
     const instructors = await Instructor.find().sort({ createdAt: -1 });
-    res.json(instructors);
+    res.json({ success: true, data: instructors });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: "Error retrieving instructors", error: error.message });
   }
 });
 
@@ -430,15 +459,48 @@ app.delete("/instructors/:id", async (req, res) => {
 app.post("/auth/signup", async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+    
+    // Validate input
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: "Name, email, and password are required" });
+    }
+    
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email already exists" });
+      return res.status(400).json({ success: false, message: "Email already exists" });
     }
-    const newUser = new User({ name, email, password, role: role || "student" });
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || "student"
+    });
     await newUser.save();
-    res.json({ message: "Signup Successful", user: { id: newUser._id, email: newUser.email, role: newUser.role } });
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email, role: newUser.role },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    
+    res.json({
+      success: true,
+      message: "Signup Successful",
+      token,
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -446,13 +508,43 @@ app.post("/auth/signup", async (req, res) => {
 app.post("/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user || user.password !== password) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Email and password are required" });
     }
-    res.json({ message: "Login Successful", user: { id: user._id, email: user.email, name: user.name, role: user.role } });
+    
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
+    }
+    
+    // Compare password with hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
+    }
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    
+    res.json({
+      success: true,
+      message: "Login Successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -501,9 +593,9 @@ app.post("/payments", async (req, res) => {
   try {
     const newPayment = new Payment(req.body);
     await newPayment.save();
-    res.json({ message: "Payment recorded successfully", payment: newPayment });
+    res.json({ success: true, message: "Payment recorded successfully", data: newPayment });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: "Error recording payment", error: error.message });
   }
 });
 
@@ -511,9 +603,9 @@ app.post("/payments", async (req, res) => {
 app.get("/payments", async (req, res) => {
   try {
     const payments = await Payment.find().sort({ date: -1 });
-    res.json(payments);
+    res.json({ success: true, data: payments });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: "Error retrieving payments", error: error.message });
   }
 });
 
@@ -539,7 +631,30 @@ app.put("/payments/:id", async (req, res) => {
 
 // test route
 app.get("/", (req, res) => {
-  res.send("Neha Motor Driving School Backend Running");
+  res.json({ success: true, message: "Neha Motor Driving School Backend Running" });
+});
+
+// ===== ERROR HANDLING MIDDLEWARE =====
+// 404 Not Found Handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    message: "Route not found",
+    path: req.originalUrl
+  });
+});
+
+// Global Error Handler
+app.use((error, req, res, next) => {
+  console.error("Error:", error);
+  const statusCode = error.statusCode || 500;
+  const message = error.message || "Something went wrong";
+  
+  res.status(statusCode).json({
+    success: false,
+    message,
+    error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+  });
 });
 
 app.listen(5000, () => {
