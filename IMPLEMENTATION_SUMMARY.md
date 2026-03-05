@@ -115,9 +115,11 @@ Your application now contains:
    - Guide in `FEATURE_ROADMAP.md`
 
 ### Important (Polish for Production):
-4. **[Feature 6: Tailwind/MUI]** (3-4 hours)
-   - Makes UI look modern and professional
-   - Reduces custom CSS maintenance
+4. **[Feature 6: Tailwind/MUI]** (3-4 hours, completed)
+   - Added Tailwind configuration (manual fallback when CLI failed) and postcss setup
+   - Integrated Material‑UI components for forms and modals while using Tailwind for layout
+   - Converted login/signup and profile dialogs to show polished design
+   - Makes interface modern, responsive, and easier to maintain
 
 5. **[Feature 8: Deployment]** (1-2 hours)
    - Get your app live on Render (backend) + Vercel (frontend)

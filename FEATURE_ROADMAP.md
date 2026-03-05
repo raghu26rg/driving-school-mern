@@ -168,35 +168,43 @@ npm install @mui/material @emotion/react @emotion/styled
 ```
 
 #### Option A: Tailwind CSS (Recommended)
-1. Initialize Tailwind:
-```bash
-npx tailwindcss init -p
-```
+1. Install packages and create config manually if CLI fails (see repo for example files). In our project we added **tailwind.config.js** and **postcss.config.js** by hand.
+   ```bash
+   npm install -D tailwindcss postcss autoprefixer
+   # npx tailwindcss init -p  <-- sometimes not available on Windows; see manual setup
+   ```
 
 2. Update `tailwind.config.js`:
-```javascript
-module.exports = {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        primary: "#1e3a8a",
-        secondary: "#3b82f6"
-      }
-    }
-  },
-  plugins: []
-};
-```
+   ```javascript
+   module.exports = {
+     content: ["./src/**/*.{js,jsx,ts,tsx}"],
+     theme: {
+       extend: {
+         colors: {
+           primary: "#1e3a8a",
+           secondary: "#3b82f6"
+         }
+       }
+     },
+     plugins: []
+   };
+   ```
 
-3. Replace CSS with Tailwind classes:
-```jsx
-// Before
-<div className="card">
+3. Add directives to `src/index.css`:
+   ```css
+   @tailwind base;
+   @tailwind components;
+   @tailwind utilities;
+   ```
 
-// After
-<div className="bg-white p-10 rounded-lg shadow-lg max-w-5xl">
-```
+4. Replace custom CSS with Tailwind classes:
+   ```jsx
+   // Before
+   <div className="card">
+   
+   // After
+   <div className="bg-white p-10 rounded-lg shadow-lg max-w-5xl">
+   ```
 
 #### Option B: Material-UI
 Use MUI components for pre-built professional widgets:
