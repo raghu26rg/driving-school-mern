@@ -171,6 +171,45 @@ Create test accounts during application startup:
 - Password: student123
 - Role: Student
 
+---
+
+## 📦 Deployment
+
+You can deploy the project easily using Render for the backend and Vercel for the frontend.
+
+### 1. Backend on Render
+1. Create a free account at [render.com](https://render.com) and connect your GitHub repo.
+2. Add a new **Web Service** and point it at the `server` folder of this repo.
+3. Set build/ start commands:
+   ```bash
+   # build (optional)
+   npm install
+   # start
+   node server.js
+   ```
+4. Configure environment variables on Render:
+   - `MONGO_URI` – your MongoDB Atlas connection string
+   - `JWT_SECRET` – any long random string
+   - (optional) `PORT` – default 5000
+5. Deploy and wait. Your backend will be available at `https://<your-service>.onrender.com`.
+
+### 2. Frontend on Vercel
+1. Sign in at [vercel.com](https://vercel.com) and import the same GitHub repository.
+2. Set the project root to `server/client`.
+3. Configure the build settings:
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `build`
+4. Add an environment variable:
+   - `REACT_APP_API_URL` = `https://<your-service>.onrender.com`
+5. Deploy. Vercel will provide a URL like `https://<your-app>.vercel.app`.
+
+> Note: The client code uses `process.env.REACT_APP_API_URL || 'http://localhost:5000'` so it automatically points to the backend URL in production.
+
+### 3. Additional Notes
+- You can also host both frontend and backend on Render (backend as Web Service, frontend as Static Site) if you prefer a single platform.
+- Make sure the MongoDB Atlas IP whitelist includes Render/Vercel IPs or set it open during development.
+- After deployment, test sign‑up/login and profile features to ensure environment variables are working.
+
 ## 📊 Database Schema
 
 ### Users Collection

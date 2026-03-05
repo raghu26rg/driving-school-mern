@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000";
+// use environment variable for production
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"; // set REACT_APP_API_URL in frontend environment
 
 // ===== JWT TOKEN MANAGEMENT =====
 // Get token from localStorage
