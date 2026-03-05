@@ -249,6 +249,38 @@ export const login = async (email, password) => {
   return data;
 };
 
+// ===== USER PROFILE APIs =====
+export const getProfile = async (userId) => {
+  const response = await fetch(`${API_URL}/auth/profile/${userId}`, {
+    headers: getAuthHeader()
+  });
+  return handleResponse(response);
+};
+
+export const updateProfile = async (userId, profileData) => {
+  const response = await fetch(`${API_URL}/auth/profile/${userId}`, {
+    method: "PUT",
+    headers: { 
+      "Content-Type": "application/json",
+      ...getAuthHeader()
+    },
+    body: JSON.stringify(profileData)
+  });
+  return handleResponse(response);
+};
+
+export const changePassword = async (userId, passwords) => {
+  const response = await fetch(`${API_URL}/auth/change-password/${userId}`, {
+    method: "PUT",
+    headers: { 
+      "Content-Type": "application/json",
+      ...getAuthHeader()
+    },
+    body: JSON.stringify(passwords)
+  });
+  return handleResponse(response);
+};
+
 export const getUsers = async () => {
   const response = await fetch(`${API_URL}/users`, {
     headers: getAuthHeader()

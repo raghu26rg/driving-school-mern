@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { login } from "../services/api";
+import { TextField, Button, Typography, Box } from "@mui/material";
 
 const LoginForm = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -33,26 +34,39 @@ const LoginForm = ({ onSuccess }) => {
 
   return (
     <>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
+      <Box className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+        <Typography variant="h5" component="h2" className="mb-4 text-center">
+          Login
+        </Typography>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <TextField
+            fullWidth
+            label="Email"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <TextField
+            fullWidth
+            label="Password"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+          >
+            Login
+          </Button>
+        </form>
+      </Box>
     </>
   );
 };

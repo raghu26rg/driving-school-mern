@@ -548,6 +548,92 @@ app.post("/auth/login", async (req, res) => {
   }
 });
 
+// GET - Get user profile
+app.get("/auth/profile/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.json({ 
+      success: true, 
+      data: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        createdAt: user.createdAt
+      } 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// PUT - Update user profile
+app.put("/auth/profile/:userId", async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    
+    if (!name || !email) {
+      return res.status(400).json({ success: false, message: "Name and email are required" });
+    }
+    
+    // Check if email already exists (for other users)
+    const existingUser = await User.findOne({ email, _id: { $ne: req.params.userId } });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email already in use" });
+    }
+    
+    const user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { name, email },
+      { new: true }
+    ).select("-password");
+    
+    res.json({ 
+      success: true, 
+      message: "Profile updated successfully",
+      data: user 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// PUT - Change password
+app.put("/auth/change-password/:userId", async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Old password and new password are required" });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: "New password must be at least 6 characters" });
+    }
+    
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: "Old password is incorrect" });
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+    
+    res.json({ success: true, message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // GET - Get all users (admin only)
 app.get("/users", async (req, res) => {
   try {

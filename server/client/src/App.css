@@ -776,9 +776,6 @@ form select:focus {
   gap: 15px;
   margin-bottom: 30px;
 }
-  gap: 20px;
-  margin: 20px 0;
-}
 
 .metric-card {
   background: white;

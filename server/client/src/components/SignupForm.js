@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { signup } from "../services/api";
+import { TextField, Button, Typography, Box, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 
 const SignupForm = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -35,44 +36,63 @@ const SignupForm = ({ onSuccess }) => {
 
   return (
     <>
-      <h2>Sign Up</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-        <select
-          name="role"
-          value={formData.role}
-          onChange={handleChange}
-          required
-        >
-          <option value="student">Student</option>
-          <option value="instructor">Instructor</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button type="submit">Sign Up</button>
-      </form>
+      <Box className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+        <Typography variant="h5" component="h2" className="mb-4 text-center">
+          Sign Up
+        </Typography>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <TextField
+            fullWidth
+            label="Full Name"
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <TextField
+            fullWidth
+            label="Password"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+          <FormControl fullWidth>
+            <InputLabel id="role-label">Role</InputLabel>
+            <Select
+              labelId="role-label"
+              name="role"
+              value={formData.role}
+              label="Role"
+              onChange={handleChange}
+              required
+            >
+              <MenuItem value="student">Student</MenuItem>
+              <MenuItem value="instructor">Instructor</MenuItem>
+              <MenuItem value="admin">Admin</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+          >
+            Sign Up
+          </Button>
+        </form>
+      </Box>
     </>
   );
 };

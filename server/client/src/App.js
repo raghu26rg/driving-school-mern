@@ -16,6 +16,7 @@ import InstructorDashboard from "./components/InstructorDashboard";
 import PaymentsTab from "./components/PaymentsTab";
 import ReportsTab from "./components/ReportsTab";
 import SettingsTab from "./components/SettingsTab";
+import UserProfile from "./components/UserProfile";
 import Toast, { useToast } from "./components/Toast";
 import { 
   getRegistrations, 
@@ -134,6 +135,12 @@ function App() {
           >
             💳 My Payments
           </button>
+          <button
+            className={`tab-button ${activeTab === "profile" ? "active" : ""}`}
+            onClick={() => setActiveTab("profile")}
+          >
+            👤 My Profile
+          </button>
         </>
       );
     } else if (currentUser?.role === "instructor") {
@@ -156,6 +163,12 @@ function App() {
             onClick={() => setActiveTab("courses")}
           >
             📚 Courses
+          </button>
+          <button
+            className={`tab-button ${activeTab === "profile" ? "active" : ""}`}
+            onClick={() => setActiveTab("profile")}
+          >
+            👤 My Profile
           </button>
         </>
       );
@@ -211,6 +224,12 @@ function App() {
           >
             ⚙️ Settings
           </button>
+          <button
+            className={`tab-button ${activeTab === "profile" ? "active" : ""}`}
+            onClick={() => setActiveTab("profile")}
+          >
+            👤 My Profile
+          </button>
         </>
       );
     }
@@ -248,6 +267,9 @@ function App() {
               />
             </div>
           )}
+          {activeTab === "profile" && (
+            <UserProfile currentUser={currentUser} />
+          )}
         </>
       );
     } else if (currentUser?.role === "instructor") {
@@ -268,6 +290,9 @@ function App() {
           )}
           {activeTab === "courses" && (
             <CourseList courses={courses} onRefresh={fetchAllData} isInstructorView={true} />
+          )}
+          {activeTab === "profile" && (
+            <UserProfile currentUser={currentUser} />
           )}
         </>
       );
@@ -324,6 +349,9 @@ function App() {
           )}
           {activeTab === "settings" && (
             <SettingsTab currentUser={currentUser} />
+          )}
+          {activeTab === "profile" && (
+            <UserProfile currentUser={currentUser} />
           )}
         </>
       );
